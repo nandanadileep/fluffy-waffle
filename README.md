@@ -1,1 +1,1 @@
-A collaborative note taking app for me and my imaginory friend. Feel free to use. I dont need your data.
+A collaborative note taking app for me and my imaginary friend. Feel free to use. I dont need your data.
