@@ -25,6 +25,11 @@ export class DriveService {
             throw new Error(error.error?.message || 'Drive API request failed');
         }
 
+        // DELETE requests return 204 No Content, so don't try to parse JSON
+        if (response.status === 204 || options.method === 'DELETE') {
+            return {};
+        }
+
         return response.json();
     }
 
