@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Folder as FolderIcon, Plus, ChevronRight, Trash2 } from 'lucide-react';
 import { Folder } from '../types';
+import { getPastelColor } from '../utils/colors';
 
 interface FolderListProps {
     folders: Folder[];
@@ -58,36 +59,39 @@ export const FolderList: React.FC<FolderListProps> = ({
             </div>
 
             {/* Folder List */}
-            {folders.map((folder) => (
-                <div
-                    key={folder.id}
-                    className={`sidebar-item flex items-center justify-between group ${selectedFolderId === folder.id ? 'sidebar-item-active' : ''
-                        }`}
-                >
+            {folders.map((folder) => {
+                const colors = getPastelColor(folder.id);
+                return (
                     <div
-                        onClick={() => onSelectFolder(folder.id)}
-                        className="flex items-center gap-2 flex-1 cursor-pointer"
+                        key={folder.id}
+                        className={`flex items-center justify-between group px-3 py-2 rounded-md cursor-pointer transition-all ${colors.bg} border ${colors.border} ${selectedFolderId === folder.id ? 'ring-2 ring-purple-300 dark:ring-purple-500/40' : ''
+                            }`}
                     >
-                        <ChevronRight size={14} className="text-gray-400" />
-                        <FolderIcon size={16} />
-                        <span className="text-sm">{folder.name}</span>
-                    </div>
-                    {folder.createdBy === currentUserEmail && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (confirm(`Delete folder "${folder.name}"?`)) {
-                                    onDeleteFolder(folder.id);
-                                }
-                            }}
-                            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-100 dark:hover:bg-red-900/20 rounded transition-all"
-                            title="Delete folder"
+                        <div
+                            onClick={() => onSelectFolder(folder.id)}
+                            className="flex items-center gap-2 flex-1 cursor-pointer"
                         >
-                            <Trash2 size={14} className="text-red-500" />
-                        </button>
-                    )}
-                </div>
-            ))}
+                            <ChevronRight size={14} className={colors.text} />
+                            <FolderIcon size={16} className={colors.text} />
+                            <span className={`text-sm ${colors.text}`}>{folder.name}</span>
+                        </div>
+                        {folder.createdBy === currentUserEmail && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (confirm(`Delete folder "${folder.name}"?`)) {
+                                        onDeleteFolder(folder.id);
+                                    }
+                                }}
+                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-100 dark:hover:bg-red-900/20 rounded transition-all"
+                                title="Delete folder"
+                            >
+                                <Trash2 size={14} className="text-red-500" />
+                            </button>
+                        )}
+                    </div>
+                );
+            })}
 
             {/* Create New Folder */}
             {isCreating && (
