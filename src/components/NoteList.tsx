@@ -1,6 +1,7 @@
 import React from 'react';
 import { FileText, Plus } from 'lucide-react';
 import { Note } from '../types';
+import { getPastelColor } from '../utils/colors';
 
 interface NoteListProps {
     notes: Note[];
@@ -59,27 +60,30 @@ export const NoteList: React.FC<NoteListProps> = ({
                 </div>
             ) : (
                 <div className="grid gap-3">
-                    {filteredNotes.map((note) => (
-                        <div
-                            key={note.id}
-                            onClick={() => onSelectNote(note.id)}
-                            className={`card cursor-pointer hover:shadow-md transition-all ${selectedNoteId === note.id
-                                ? 'ring-2 ring-purple-200 dark:ring-purple-500/20'
-                                : ''
-                                }`}
-                        >
-                            <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-                                {note.title || 'Untitled'}
-                            </h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-3">
-                                {note.content || 'No content'}
-                            </p>
-                            <div className="flex items-center justify-between text-xs text-gray-400 dark:text-gray-500">
-                                <span>{note.createdByName}</span>
-                                <span>{formatDate(note.updatedAt)}</span>
+                    {filteredNotes.map((note) => {
+                        const colors = getPastelColor(note.id);
+                        return (
+                            <div
+                                key={note.id}
+                                onClick={() => onSelectNote(note.id)}
+                                className={`${colors.bg} border ${colors.border} rounded-lg shadow-sm p-4 cursor-pointer hover:shadow-md transition-all ${selectedNoteId === note.id
+                                        ? 'ring-2 ring-purple-300 dark:ring-purple-500/40 scale-[1.02]'
+                                        : ''
+                                    }`}
+                            >
+                                <h3 className={`font-medium ${colors.text} mb-2`}>
+                                    {note.title || 'Untitled'}
+                                </h3>
+                                <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 mb-3">
+                                    {note.content || 'No content'}
+                                </p>
+                                <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                                    <span>{note.createdByName}</span>
+                                    <span>{formatDate(note.updatedAt)}</span>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </div>
