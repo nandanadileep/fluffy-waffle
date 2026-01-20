@@ -236,10 +236,18 @@ function App() {
                 theme={theme}
                 onToggleTheme={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
                 onLogout={handleLogout}
-                onInviteUser={() => {
+                onInviteUser={(email) => {
                     const url = window.location.origin;
+                    // 1. Copy to clipboard just in case
                     navigator.clipboard.writeText(url);
-                    alert(`App URL copied! Send this to your friend: ${url}`);
+
+                    // 2. Open email app
+                    const subject = encodeURIComponent("Join my Just Note-taLking space!");
+                    const body = encodeURIComponent(`Hey! I want to share notes with you. \n\nClick here to join my workspace: ${url}\n\n(Sign in with your Google account to see everything!)`);
+                    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+
+                    setError("Link copied & Email app opened! 🚀");
+                    setTimeout(() => setError(null), 3000);
                 }}
                 canInvite={true}
                 searchQuery={searchQuery}
