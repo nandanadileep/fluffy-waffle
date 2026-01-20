@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Save, Trash2, MessageCircle, Send } from 'lucide-react';
 import { Note, Comment } from '../types';
+import { getPastelColor } from '../utils/colors';
 
 interface NoteEditorProps {
     note: Note;
@@ -109,21 +110,24 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
                     </div>
 
                     <div className="space-y-3 mb-4">
-                        {comments.map((comment) => (
-                            <div key={comment.id} className="card bg-gray-50 dark:bg-gray-700/30 p-3">
-                                <div className="flex items-start justify-between mb-2">
-                                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                                        {comment.createdByName}
-                                    </span>
-                                    <span className="text-xs text-gray-400 dark:text-gray-500">
-                                        {formatDate(comment.createdAt)}
-                                    </span>
+                        {comments.map((comment) => {
+                            const colors = getPastelColor(comment.id);
+                            return (
+                                <div key={comment.id} className={`${colors.bg} border ${colors.border} rounded-lg p-3`}>
+                                    <div className="flex items-start justify-between mb-2">
+                                        <span className={`text-xs font-medium ${colors.text}`}>
+                                            {comment.createdByName}
+                                        </span>
+                                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                                            {formatDate(comment.createdAt)}
+                                        </span>
+                                    </div>
+                                    <p className="text-sm text-gray-700 dark:text-gray-200 font-light">
+                                        {comment.content}
+                                    </p>
                                 </div>
-                                <p className="text-sm text-gray-600 dark:text-gray-300 font-light">
-                                    {comment.content}
-                                </p>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
 
                     {/* Add Comment */}
