@@ -1,13 +1,19 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+
+  html,
+  body {
+    @apply overflow-x-hidden;
+  }
+
   body {
     @apply bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
   }
 }
 
