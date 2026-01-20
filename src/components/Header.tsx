@@ -57,9 +57,14 @@ export const Header: React.FC<HeaderProps> = ({
                 <div className="flex items-center justify-between gap-4 min-w-0">
                     {/* Left: Title */}
                     <div className="flex-shrink-0">
-                        <h1 className="text-xl font-light text-gray-900 dark:text-gray-100">
-                            Just Notes
-                        </h1>
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-xl font-light text-gray-900 dark:text-gray-100">
+                                Just Note-taLking
+                            </h1>
+                            <span className="px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-[10px] font-bold uppercase tracking-widest rounded-full border border-purple-200 dark:border-purple-800/50">
+                                Collaborative
+                            </span>
+                        </div>
                         <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500 mt-1">
                             {isOnline ? (
                                 <Wifi size={12} className="text-green-500" />

@@ -236,8 +236,12 @@ function App() {
                 theme={theme}
                 onToggleTheme={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
                 onLogout={handleLogout}
-                onInviteUser={() => { }} // Invite logic changed in Supabase
-                canInvite={false}
+                onInviteUser={() => {
+                    const url = window.location.origin;
+                    navigator.clipboard.writeText(url);
+                    alert(`App URL copied! Send this to your friend: ${url}`);
+                }}
+                canInvite={true}
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
                 isOnline={!isSyncing}
