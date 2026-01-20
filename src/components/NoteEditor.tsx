@@ -40,7 +40,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
     }, [title, content, note.title, note.content]);
 
     const handleSave = async () => {
-        if (!hasChanges || !isOwnNote) return;
+        if (!hasChanges) return;
 
         setIsSaving(true);
         try {
@@ -74,7 +74,6 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
                         onChange={(e) => setTitle(e.target.value)}
                         placeholder="Note title"
                         className="text-2xl font-light w-full bg-transparent border-none outline-none text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
-                        disabled={!isOwnNote}
                     />
                     <div className="flex items-center gap-4 mt-2 text-xs text-gray-400 dark:text-gray-500">
                         <span>By {note.createdByName}</span>
@@ -96,7 +95,6 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
                         onChange={(e) => setContent(e.target.value)}
                         placeholder="Write your note here..."
                         className="w-full min-h-[300px] bg-transparent border-none outline-none resize-none text-gray-700 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500 font-light leading-relaxed"
-                        disabled={!isOwnNote}
                     />
                 </div>
 
@@ -159,32 +157,27 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
 
             {/* Actions */}
             <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4 flex items-center justify-between">
-                {isOwnNote && (
-                    <button
-                        onClick={onDelete}
-                        className="px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-all text-sm font-medium flex items-center gap-2"
-                    >
-                        <Trash2 size={16} />
-                        Delete
-                    </button>
-                )}
-                {!isOwnNote && (
-                    <span className="text-xs text-gray-400 dark:text-gray-500 italic">
-                        Read-only (not your note)
-                    </span>
-                )}
+                <div>
+                    {isOwnNote && (
+                        <button
+                            onClick={onDelete}
+                            className="px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-all text-sm font-medium flex items-center gap-2"
+                        >
+                            <Trash2 size={16} />
+                            Delete
+                        </button>
+                    )}
+                </div>
 
-                {isOwnNote && (
-                    <button
-                        onClick={handleSave}
-                        disabled={!hasChanges || isSaving}
-                        className={`btn-primary flex items-center gap-2 ${!hasChanges ? 'opacity-50 cursor-not-allowed' : ''
-                            }`}
-                    >
-                        <Save size={16} />
-                        {isSaving ? 'Saving...' : hasChanges ? 'Save' : 'Saved'}
-                    </button>
-                )}
+                <button
+                    onClick={handleSave}
+                    disabled={!hasChanges || isSaving}
+                    className={`btn-primary flex items-center gap-2 ${!hasChanges && !isSaving ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                >
+                    <Save size={16} />
+                    {isSaving ? 'Saving...' : hasChanges ? 'Save Changes' : 'All Saved'}
+                </button>
             </div>
         </div>
     );

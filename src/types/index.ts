@@ -18,7 +18,6 @@ export interface AppMetadata {
 export interface Folder {
     id: string;
     name: string;
-    driveId: string; // Google Drive folder ID
     createdAt: string;
     createdBy: string; // user email
 }
@@ -28,7 +27,6 @@ export interface Note {
     folderId: string | null; // null for root notes
     title: string;
     content: string;
-    driveFileId: string; // Google Drive file ID
     createdAt: string;
     updatedAt: string;
     createdBy: string; // user email
