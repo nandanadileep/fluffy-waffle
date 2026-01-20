@@ -53,10 +53,10 @@ export const Header: React.FC<HeaderProps> = ({
 
     return (
         <>
-            <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-                <div className="flex items-center justify-between gap-4">
+            <header className="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+                <div className="flex items-center justify-between gap-4 min-w-0">
                     {/* Left: Title */}
-                    <div>
+                    <div className="flex-shrink-0">
                         <h1 className="text-xl font-light text-gray-900 dark:text-gray-100">
                             Just Notes
                         </h1>
@@ -71,7 +71,7 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
 
                     {/* Center: Search */}
-                    <div className="flex-1 max-w-md">
+                    <div className="flex-1 max-w-md min-w-0">
                         <div className="relative">
                             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                             <input
@@ -85,7 +85,7 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
 
                     {/* Right: Actions */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-shrink-0">
                         {canInvite && (
                             <button
                                 onClick={() => setShowInviteModal(true)}
