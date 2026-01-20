@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import { CredentialResponse } from '@react-oauth/google';
 import { Auth } from './components/Auth';
 import { Header } from './components/Header';
 import { FolderList } from './components/FolderList';
@@ -11,7 +10,8 @@ import { localStorageService } from './utils/storage';
 import { User, AppMetadata, Folder, Note, Comment, ThemeMode } from './types';
 import './index.css';
 
-const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+// Trim potential whitespace from .env
+const CLIENT_ID = (import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim();
 
 function App() {
     const [user, setUser] = useState<User | null>(null);
@@ -61,48 +61,6 @@ function App() {
         if (cachedSyncTime) setLastSyncTime(cachedSyncTime);
     }, []);
 
-    const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
-        try {
-            setError(null);
-
-            // Decode JWT to get user info
-            const token = credentialResponse.credential;
-            if (!token) throw new Error('No credential token');
-
-            const payload = JSON.parse(atob(token.split('.')[1]));
-
-            // Get access token (we need to use gapi for this)
-            // For now, we'll use a workaround - request it via Google Identity Services
-            const tokenClient = (window as any).google.accounts.oauth2.initTokenClient({
-                client_id: CLIENT_ID,
-                scope: 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
-                callback: async (tokenResponse: any) => {
-                    if (tokenResponse.error) {
-                        throw new Error(tokenResponse.error);
-                    }
-
-                    const accessToken = tokenResponse.access_token;
-
-                    const currentUser: User = {
-                        id: payload.sub,
-                        email: payload.email,
-                        name: payload.name,
-                        picture: payload.picture,
-                        accessToken,
-                    };
-
-                    setUser(currentUser);
-                    await initializeApp(currentUser);
-                },
-            });
-
-            tokenClient.requestAccessToken();
-        } catch (err: any) {
-            console.error('Login error:', err);
-            setError(err.message || 'Failed to sign in');
-        }
-    };
-
     const initializeApp = async (currentUser: User) => {
         try {
             setIsSyncing(true);
@@ -147,6 +105,43 @@ function App() {
             console.error('Initialization error:', err);
             setError(err.message || 'Failed to initialize app');
             setUser(null);
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
+    const handleGoogleSuccess = async (tokenResponse: any) => {
+        try {
+            setError(null);
+            setIsSyncing(true);
+
+            const accessToken = tokenResponse.access_token;
+            if (!accessToken) throw new Error('No access token received');
+
+            // Fetch user profile info using the access token
+            const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: { Authorization: `Bearer ${accessToken}` },
+            });
+
+            if (!userInfoResponse.ok) {
+                throw new Error('Failed to fetch user profile');
+            }
+
+            const payload = await userInfoResponse.json();
+
+            const currentUser: User = {
+                id: payload.sub,
+                email: payload.email,
+                name: payload.name,
+                picture: payload.picture,
+                accessToken,
+            };
+
+            setUser(currentUser);
+            await initializeApp(currentUser);
+        } catch (err: any) {
+            console.error('Login failed:', err);
+            setError('Failed to sign in: ' + (err.message || 'Unknown error'));
         } finally {
             setIsSyncing(false);
         }
@@ -432,7 +427,7 @@ function App() {
                     onError={() => setError('Failed to sign in with Google')}
                 />
                 {error && (
-                    <div className="fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg">
+                    <div className="fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-[100]">
                         {error}
                     </div>
                 )}
@@ -508,7 +503,7 @@ function App() {
 
                 {/* Error Toast */}
                 {error && (
-                    <div className="fixed bottom-4 right-4 bg-red-500 text-white px-4 py-3 rounded-md shadow-lg max-w-md">
+                    <div className="fixed bottom-4 right-4 bg-red-500 text-white px-4 py-3 rounded-md shadow-lg max-w-md z-[100]">
                         <div className="flex items-start justify-between gap-3">
                             <p className="text-sm">{error}</p>
                             <button
