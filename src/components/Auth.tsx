@@ -19,7 +19,7 @@ export const Auth: React.FC = () => {
                     Just Notes
                 </h1>
                 <p className="text-gray-500 dark:text-gray-400 mb-10 font-light text-lg">
-                    Simple, collaborative note-taLking
+                    Simple, collaborative note-taking
                 </p>
 
                 <button
