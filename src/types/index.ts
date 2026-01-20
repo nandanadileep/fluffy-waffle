@@ -20,6 +20,7 @@ export interface Folder {
     name: string;
     createdAt: string;
     createdBy: string; // user email
+    sharedWith: string[]; // Array of emails
 }
 
 export interface Note {
@@ -31,6 +32,7 @@ export interface Note {
     updatedAt: string;
     createdBy: string; // user email
     createdByName: string;
+    sharedWith: string[]; // Array of emails
 }
 
 export interface Comment {

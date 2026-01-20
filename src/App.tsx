@@ -56,7 +56,7 @@ function App() {
                     accessToken: session.access_token,
                 };
                 setUser(currentUser);
-                loadData();
+                loadData(currentUser.email);
             }
         });
 
@@ -70,7 +70,7 @@ function App() {
                     accessToken: session.access_token,
                 };
                 setUser(currentUser);
-                loadData();
+                loadData(currentUser.email);
             } else {
                 setUser(null);
             }
@@ -79,12 +79,15 @@ function App() {
         return () => subscription.unsubscribe();
     }, []);
 
-    const loadData = async () => {
+    const loadData = async (userEmail?: string) => {
+        const email = userEmail || user?.email;
+        if (!email) return;
+
         try {
             setIsSyncing(true);
             const [loadedFolders, loadedNotes] = await Promise.all([
-                supabaseService.getFolders(),
-                supabaseService.getNotes(),
+                supabaseService.getFolders(email),
+                supabaseService.getNotes(email),
             ]);
 
             setFolders(loadedFolders);
@@ -173,6 +176,36 @@ function App() {
         }
     };
 
+    const handleInviteUser = async (email: string) => {
+        if (!user) return;
+        try {
+            if (selectedFolderId) {
+                await supabaseService.shareFolder(selectedFolderId, email);
+            } else if (selectedNoteId) {
+                await supabaseService.shareNote(selectedNoteId, email);
+            } else {
+                // Just copy the link if nothing is selected
+                const url = window.location.origin;
+                navigator.clipboard.writeText(url);
+                alert(`App URL copied! Send this to your friend: ${url}`);
+                return;
+            }
+
+            // Also open email app as a bonus
+            const url = window.location.origin;
+            const subject = encodeURIComponent(`I shared a note space with you!`);
+            const body = encodeURIComponent(`Hey! I've shared a part of my Just Note-taLking space with you.\n\nClick here to view: ${url}\n\n(Sign in with ${email} to see it!)`);
+            window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+
+            setError("Successfully shared! 🚀");
+            setTimeout(() => setError(null), 3000);
+            loadData();
+        } catch (err) {
+            console.error('Failed to share:', err);
+            setError('Failed to share item');
+        }
+    };
+
     const handleAddComment = async (noteId: string, content: string) => {
         if (!user) return;
         try {
@@ -236,19 +269,7 @@ function App() {
                 theme={theme}
                 onToggleTheme={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
                 onLogout={handleLogout}
-                onInviteUser={(email) => {
-                    const url = window.location.origin;
-                    // 1. Copy to clipboard just in case
-                    navigator.clipboard.writeText(url);
-
-                    // 2. Open email app
-                    const subject = encodeURIComponent("Join my Just Note-taLking space!");
-                    const body = encodeURIComponent(`Hey! I want to share notes with you. \n\nClick here to join my workspace: ${url}\n\n(Sign in with your Google account to see everything!)`);
-                    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
-
-                    setError("Link copied & Email app opened! 🚀");
-                    setTimeout(() => setError(null), 3000);
-                }}
+                onInviteUser={handleInviteUser}
                 canInvite={true}
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
