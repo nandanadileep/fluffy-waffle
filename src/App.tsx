@@ -160,14 +160,27 @@ function App() {
             ]);
 
             setFolders(loadedFolders);
-            setNotes(rootNotes);
+
+            // Map root notes to have null folderId
+            const mappedRootNotes = rootNotes.map(note => ({
+                ...note,
+                folderId: null
+            }));
 
             // Load notes from each folder
-            const folderNotes = await Promise.all(
+            const folderNotesArrays = await Promise.all(
                 loadedFolders.map(folder => driveService.listNotes(folder.driveId))
             );
 
-            const allNotes = [...rootNotes, ...folderNotes.flat()];
+            // Map folder notes to use local folder IDs
+            const mappedFolderNotes = folderNotesArrays.flatMap((folderNotes, index) =>
+                folderNotes.map(note => ({
+                    ...note,
+                    folderId: loadedFolders[index].id
+                }))
+            );
+
+            const allNotes = [...mappedRootNotes, ...mappedFolderNotes];
             setNotes(allNotes);
 
             // Load comments for all notes
@@ -209,8 +222,11 @@ function App() {
         if (!user) return;
 
         try {
+            const folder = folders.find(f => f.id === folderId);
+            if (!folder) return;
+
             const driveService = new DriveService(user.accessToken);
-            await driveService.deleteFolder(folderId);
+            await driveService.deleteFolder(folder.driveId);
 
             setFolders(prev => prev.filter(f => f.id !== folderId));
             setNotes(prev => prev.filter(n => n.folderId !== folderId));
@@ -231,12 +247,19 @@ function App() {
     const handleCreateNote = async () => {
         if (!user || !notesFolderId) return;
 
-        const parentId = selectedFolderId || notesFolderId;
+        // Get the correct Drive parent ID
+        let parentDriveId = notesFolderId;
+        if (selectedFolderId) {
+            const folder = folders.find(f => f.id === selectedFolderId);
+            if (folder) {
+                parentDriveId = folder.driveId;
+            }
+        }
 
         try {
             const driveService = new DriveService(user.accessToken);
             const newNote = await driveService.createNote(
-                parentId,
+                parentDriveId,
                 'Untitled Note',
                 '',
                 user.email,
@@ -419,7 +442,7 @@ function App() {
 
     return (
         <GoogleOAuthProvider clientId={CLIENT_ID}>
-            <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+            <div className="h-screen w-screen max-w-full flex flex-col bg-gray-50 dark:bg-gray-900 overflow-x-hidden">
                 <Header
                     user={user}
                     theme={theme}
@@ -433,9 +456,9 @@ function App() {
                     lastSyncTime={lastSyncTime}
                 />
 
-                <div className="flex-1 flex overflow-hidden">
+                <div className="flex-1 flex overflow-hidden min-w-0">
                     {/* Sidebar */}
-                    <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 overflow-y-auto">
+                    <aside className="w-64 flex-shrink-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 overflow-y-auto">
                         <FolderList
                             folders={folders}
                             selectedFolderId={selectedFolderId}
@@ -447,7 +470,7 @@ function App() {
                     </aside>
 
                     {/* Notes List */}
-                    <div className="w-80 bg-gray-50 dark:bg-gray-800/50 border-r border-gray-200 dark:border-gray-700 p-4 overflow-y-auto">
+                    <div className="w-80 flex-shrink-0 bg-gray-50 dark:bg-gray-800/50 border-r border-gray-200 dark:border-gray-700 p-4 overflow-y-auto">
                         <NoteList
                             notes={filteredNotes}
                             selectedNoteId={selectedNoteId}
@@ -458,7 +481,7 @@ function App() {
                     </div>
 
                     {/* Note Editor */}
-                    <main className="flex-1 bg-white dark:bg-gray-800 p-6 overflow-y-auto">
+                    <main className="flex-1 min-w-0 bg-white dark:bg-gray-800 p-6 overflow-y-auto">
                         {selectedNote ? (
                             <NoteEditor
                                 note={selectedNote}
