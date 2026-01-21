@@ -233,7 +233,10 @@ function App() {
     const filteredNotes = notes.filter(note => {
         const matchesSearch = note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             note.content.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesFolder = selectedFolderId === null ? true : note.folderId === selectedFolderId;
+
+        // If All Notes is selected (null), show everything. Otherwise, match folder ID.
+        const matchesFolder = selectedFolderId === null ? true : (note.folderId === selectedFolderId);
+
         return matchesSearch && matchesFolder;
     });
 
