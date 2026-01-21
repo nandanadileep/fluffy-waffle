@@ -178,23 +178,23 @@ function App() {
 
     const handleInviteUser = async (email: string) => {
         if (!user) return;
+        const productionUrl = 'https://jotdowntogether.nandanadileep.com';
+
         try {
             if (selectedFolderId) {
                 await supabaseService.shareFolder(selectedFolderId, email);
             } else if (selectedNoteId) {
                 await supabaseService.shareNote(selectedNoteId, email);
             } else {
-                // Just copy the link if nothing is selected
-                const url = window.location.origin;
-                navigator.clipboard.writeText(url);
-                alert(`App URL copied! Send this to your friend: ${url}`);
+                // Global invite: Just copy link
+                navigator.clipboard.writeText(productionUrl);
+                alert(`App link copied! Send this to your friend: ${productionUrl}`);
                 return;
             }
 
-            // Also open email app as a bonus
-            const url = window.location.origin;
+            // Open email client with your REAL domain
             const subject = encodeURIComponent(`I shared a note space with you!`);
-            const body = encodeURIComponent(`Hey! I've shared a part of my Just Note-taLking space with you.\n\nClick here to view: ${url}\n\n(Sign in with ${email} to see it!)`);
+            const body = encodeURIComponent(`Hey! I've shared a part of my Just Note-taLking space with you.\n\nClick here to view: ${productionUrl}\n\n(Sign in with ${email} to see it!)`);
             window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
 
             setError("Successfully shared! 🚀");
@@ -202,7 +202,7 @@ function App() {
             loadData();
         } catch (err) {
             console.error('Failed to share:', err);
-            setError('Failed to share item');
+            setError('Failed to share! Did you run the SQL in Supabase to add the sharing columns?');
         }
     };
 
