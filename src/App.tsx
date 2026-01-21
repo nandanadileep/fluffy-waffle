@@ -46,6 +46,16 @@ function App() {
         localStorage.setItem('theme', theme);
     }, [theme]);
 
+    // Parse URL for deep linking
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const folderId = params.get('folderId');
+        const noteId = params.get('noteId');
+
+        if (folderId) setSelectedFolderId(folderId);
+        if (noteId) setSelectedNoteId(noteId);
+    }, []);
+
     // Handle Auth Session
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
@@ -191,12 +201,14 @@ function App() {
 
             if (selectedFolderId && folder) {
                 await supabaseService.shareFolder(selectedFolderId, email);
+                const shareLink = `${productionUrl}?folderId=${selectedFolderId}`;
                 subject = `I shared a folder with you: ${folder.name}`;
-                body = `Hey! I've shared my folder "${folder.name}" with you on Just Note-taLking.\n\nClick here to view it and all notes inside: ${productionUrl}\n\n(Sign in with ${email} to see it!)`;
+                body = `Hey! I've shared my folder "${folder.name}" with you on Just Note-taLking.\n\nClick here to view it and all notes inside: ${shareLink}\n\n(Sign in with ${email} to see it!)`;
             } else if (selectedNoteId && note) {
                 await supabaseService.shareNote(selectedNoteId, email);
+                const shareLink = `${productionUrl}?noteId=${selectedNoteId}`;
                 subject = `I shared a note with you: ${note.title || 'Untitled'}`;
-                body = `Hey! I've shared my note "${note.title || 'Untitled'}" with you on Just Note-taLking.\n\nClick here to view it: ${productionUrl}\n\n(Sign in with ${email} to see it!)`;
+                body = `Hey! I've shared my note "${note.title || 'Untitled'}" with you on Just Note-taLking.\n\nClick here to view it: ${shareLink}\n\n(Sign in with ${email} to see it!)`;
             } else {
                 // Global invite: Just copy link
                 navigator.clipboard.writeText(productionUrl);
