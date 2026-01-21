@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, Trash2, MessageCircle, Send } from 'lucide-react';
+import { Save, Trash2, MessageCircle, Send, UserPlus } from 'lucide-react';
 import { Note, Comment } from '../types';
 import { getPastelColor } from '../utils/colors';
 
@@ -9,6 +9,7 @@ interface NoteEditorProps {
     currentUserEmail: string;
     onSave: (title: string, content: string) => void;
     onDelete: () => void;
+    onShare: () => void;
     onAddComment: (content: string) => void;
 }
 
@@ -18,6 +19,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
     currentUserEmail,
     onSave,
     onDelete,
+    onShare,
     onAddComment,
 }) => {
     const [title, setTitle] = useState(note.title);
@@ -157,7 +159,16 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({
 
             {/* Actions */}
             <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4 flex items-center justify-between">
-                <div>
+                <div className="flex items-center gap-2">
+                    {isOwnNote && (
+                        <button
+                            onClick={onShare}
+                            className="px-4 py-2 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-md transition-all text-sm font-medium flex items-center gap-2"
+                        >
+                            <UserPlus size={16} />
+                            Share
+                        </button>
+                    )}
                     {isOwnNote && (
                         <button
                             onClick={onDelete}

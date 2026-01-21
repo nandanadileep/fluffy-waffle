@@ -1,20 +1,18 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Search, Moon, Sun, LogOut, UserPlus, Wifi, WifiOff } from 'lucide-react';
-import { User, ThemeMode, Folder, Note } from '../types';
+import { User, ThemeMode } from '../types';
 
 interface HeaderProps {
     user: User;
     theme: ThemeMode;
     onToggleTheme: () => void;
     onLogout: () => void;
-    onInviteUser: (email: string) => void;
+    onOpenInvite: () => void;
     canInvite: boolean;
     searchQuery: string;
     onSearchChange: (query: string) => void;
     isOnline: boolean;
     lastSyncTime: string | null;
-    selectedFolder?: Folder;
-    selectedNote?: Note;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -22,37 +20,13 @@ export const Header: React.FC<HeaderProps> = ({
     theme,
     onToggleTheme,
     onLogout,
-    onInviteUser,
+    onOpenInvite,
     canInvite,
     searchQuery,
     onSearchChange,
     isOnline,
     lastSyncTime,
-    selectedFolder,
-    selectedNote,
 }) => {
-    const [showInviteModal, setShowInviteModal] = useState(false);
-    const [inviteEmail, setInviteEmail] = useState('');
-
-    const handleInvite = () => {
-        if (inviteEmail.trim()) {
-            onInviteUser(inviteEmail.trim());
-            setInviteEmail('');
-            setShowInviteModal(false);
-        }
-    };
-
-    const getShareTitle = () => {
-        if (selectedFolder) return `Share Folder: ${selectedFolder.name}`;
-        if (selectedNote) return `Share Note: ${selectedNote.title || 'Untitled'}`;
-        return 'Invite to App';
-    };
-
-    const getShareDescription = () => {
-        if (selectedFolder) return `Enter an email to give them access to this folder and ALL notes inside it.`;
-        if (selectedNote) return `Enter an email to give them access to this specific note.`;
-        return 'Enter an email to send them a link to sign up and join the app.';
-    };
 
     const formatSyncTime = (time: string | null) => {
         if (!time) return 'Never';
@@ -109,12 +83,12 @@ export const Header: React.FC<HeaderProps> = ({
                     <div className="flex items-center gap-2 flex-shrink-0">
                         {canInvite && (
                             <button
-                                onClick={() => setShowInviteModal(true)}
+                                onClick={onOpenInvite}
                                 className="btn-secondary flex items-center gap-2 text-sm"
-                                title="Invite user"
+                                title="Invite a friend to use the app"
                             >
                                 <UserPlus size={16} />
-                                Invite
+                                Invite Friend
                             </button>
                         )}
 
@@ -147,43 +121,6 @@ export const Header: React.FC<HeaderProps> = ({
                     </div>
                 </div>
             </header>
-
-            {/* Invite Modal */}
-            {showInviteModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="card max-w-md w-full p-6">
-                        <h2 className="text-xl font-light text-gray-900 dark:text-gray-100 mb-4">
-                            {getShareTitle()}
-                        </h2>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                            {getShareDescription()}
-                        </p>
-                        <input
-                            type="email"
-                            value={inviteEmail}
-                            onChange={(e) => setInviteEmail(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') handleInvite();
-                                if (e.key === 'Escape') setShowInviteModal(false);
-                            }}
-                            placeholder="email@gmail.com"
-                            className="input-field mb-4"
-                            autoFocus
-                        />
-                        <div className="flex gap-3">
-                            <button onClick={handleInvite} className="btn-primary flex-1">
-                                Send Invite
-                            </button>
-                            <button
-                                onClick={() => setShowInviteModal(false)}
-                                className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </>
     );
 };

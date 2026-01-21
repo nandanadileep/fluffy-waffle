@@ -23,6 +23,8 @@ function App() {
     const [isSyncing, setIsSyncing] = useState(false);
     const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [showInviteModal, setShowInviteModal] = useState(false);
+    const [inviteEmail, setInviteEmail] = useState('');
 
     // Load theme from localStorage
     useEffect(() => {
@@ -180,25 +182,37 @@ function App() {
         if (!user) return;
         const productionUrl = 'https://jotdowntogether.nandanadileep.com';
 
+        const folder = folders.find(f => f.id === selectedFolderId);
+        const note = notes.find(n => n.id === selectedNoteId);
+
         try {
-            if (selectedFolderId) {
+            let subject = '';
+            let body = '';
+
+            if (selectedFolderId && folder) {
                 await supabaseService.shareFolder(selectedFolderId, email);
-            } else if (selectedNoteId) {
+                subject = `I shared a folder with you: ${folder.name}`;
+                body = `Hey! I've shared my folder "${folder.name}" with you on Just Note-taLking.\n\nClick here to view it and all notes inside: ${productionUrl}\n\n(Sign in with ${email} to see it!)`;
+            } else if (selectedNoteId && note) {
                 await supabaseService.shareNote(selectedNoteId, email);
+                subject = `I shared a note with you: ${note.title || 'Untitled'}`;
+                body = `Hey! I've shared my note "${note.title || 'Untitled'}" with you on Just Note-taLking.\n\nClick here to view it: ${productionUrl}\n\n(Sign in with ${email} to see it!)`;
             } else {
                 // Global invite: Just copy link
                 navigator.clipboard.writeText(productionUrl);
                 alert(`App link copied! Send this to your friend: ${productionUrl}`);
+                setInviteEmail('');
+                setShowInviteModal(false);
                 return;
             }
 
-            // Open email client with your REAL domain
-            const subject = encodeURIComponent(`I shared a note space with you!`);
-            const body = encodeURIComponent(`Hey! I've shared a part of my Just Note-taLking space with you.\n\nClick here to view: ${productionUrl}\n\n(Sign in with ${email} to see it!)`);
-            window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+            // Open email client with specific context
+            window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
             setError("Successfully shared! 🚀");
             setTimeout(() => setError(null), 3000);
+            setInviteEmail('');
+            setShowInviteModal(false);
             loadData();
         } catch (err) {
             console.error('Failed to share:', err);
@@ -272,14 +286,16 @@ function App() {
                 theme={theme}
                 onToggleTheme={() => setTheme(prev => prev === 'light' ? 'dark' : 'light')}
                 onLogout={handleLogout}
-                onInviteUser={handleInviteUser}
+                onOpenInvite={() => {
+                    setSelectedFolderId(null);
+                    setSelectedNoteId(null);
+                    setShowInviteModal(true);
+                }}
                 canInvite={true}
                 searchQuery={searchQuery}
                 onSearchChange={setSearchQuery}
                 isOnline={!isSyncing}
                 lastSyncTime={lastSyncTime}
-                selectedFolder={folders.find(f => f.id === selectedFolderId)}
-                selectedNote={notes.find(n => n.id === selectedNoteId)}
             />
 
             <div className="flex-1 flex overflow-hidden min-w-0">
@@ -290,6 +306,11 @@ function App() {
                         onSelectFolder={setSelectedFolderId}
                         onCreateFolder={handleCreateFolder}
                         onDeleteFolder={handleDeleteFolder}
+                        onShareFolder={(id) => {
+                            setSelectedFolderId(id);
+                            setSelectedNoteId(null);
+                            setShowInviteModal(true);
+                        }}
                         currentUserEmail={user.email}
                     />
                 </aside>
@@ -316,6 +337,7 @@ function App() {
                                     handleDeleteNote(selectedNote.id);
                                 }
                             }}
+                            onShare={() => setShowInviteModal(true)}
                             onAddComment={(content) => handleAddComment(selectedNote.id, content)}
                         />
                     ) : (
@@ -328,6 +350,52 @@ function App() {
                     )}
                 </main>
             </div>
+
+            {showInviteModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="card max-w-md w-full p-6">
+                        <h2 className="text-xl font-light text-gray-900 dark:text-gray-100 mb-4">
+                            {(() => {
+                                const folder = folders.find(f => f.id === selectedFolderId);
+                                const note = notes.find(n => n.id === selectedNoteId);
+                                if (folder) return `Share Folder: ${folder.name}`;
+                                if (note) return `Share Note: ${note.title || 'Untitled'}`;
+                                return 'Invite Friend';
+                            })()}
+                        </h2>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                            {(() => {
+                                if (selectedFolderId) return `Enter an email to give them access to this folder and ALL notes inside it.`;
+                                if (selectedNoteId) return `Enter an email to give them access to this specific note.`;
+                                return 'Enter your friend\'s email to send them a magic link to join your workspace.';
+                            })()}
+                        </p>
+                        <input
+                            type="email"
+                            value={inviteEmail}
+                            onChange={(e) => setInviteEmail(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleInviteUser(inviteEmail);
+                                if (e.key === 'Escape') setShowInviteModal(false);
+                            }}
+                            placeholder="email@gmail.com"
+                            className="input-field mb-4"
+                            autoFocus
+                        />
+                        <div className="flex gap-3">
+                            <button onClick={() => handleInviteUser(inviteEmail)} className="btn-primary flex-1">
+                                Send Invite
+                            </button>
+                            <button
+                                onClick={() => setShowInviteModal(false)}
+                                className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {error && (
                 <div className="fixed bottom-4 right-4 bg-red-500 text-white px-4 py-3 rounded-md shadow-lg max-w-md z-[100]">
