@@ -233,7 +233,7 @@ function App() {
     const filteredNotes = notes.filter(note => {
         const matchesSearch = note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             note.content.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesFolder = selectedFolderId === null ? note.folderId === null : note.folderId === selectedFolderId;
+        const matchesFolder = selectedFolderId === null ? true : note.folderId === selectedFolderId;
         return matchesSearch && matchesFolder;
     });
 
@@ -275,6 +275,8 @@ function App() {
                 onSearchChange={setSearchQuery}
                 isOnline={!isSyncing}
                 lastSyncTime={lastSyncTime}
+                selectedFolder={folders.find(f => f.id === selectedFolderId)}
+                selectedNote={notes.find(n => n.id === selectedNoteId)}
             />
 
             <div className="flex-1 flex overflow-hidden min-w-0">

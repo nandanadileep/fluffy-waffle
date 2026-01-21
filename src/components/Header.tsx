@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Moon, Sun, LogOut, UserPlus, Wifi, WifiOff } from 'lucide-react';
-import { User, ThemeMode } from '../types';
+import { User, ThemeMode, Folder, Note } from '../types';
 
 interface HeaderProps {
     user: User;
@@ -13,6 +13,8 @@ interface HeaderProps {
     onSearchChange: (query: string) => void;
     isOnline: boolean;
     lastSyncTime: string | null;
+    selectedFolder?: Folder;
+    selectedNote?: Note;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -26,6 +28,8 @@ export const Header: React.FC<HeaderProps> = ({
     onSearchChange,
     isOnline,
     lastSyncTime,
+    selectedFolder,
+    selectedNote,
 }) => {
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [inviteEmail, setInviteEmail] = useState('');
@@ -36,6 +40,18 @@ export const Header: React.FC<HeaderProps> = ({
             setInviteEmail('');
             setShowInviteModal(false);
         }
+    };
+
+    const getShareTitle = () => {
+        if (selectedFolder) return `Share Folder: ${selectedFolder.name}`;
+        if (selectedNote) return `Share Note: ${selectedNote.title || 'Untitled'}`;
+        return 'Invite to App';
+    };
+
+    const getShareDescription = () => {
+        if (selectedFolder) return `Enter an email to give them access to this folder and ALL notes inside it.`;
+        if (selectedNote) return `Enter an email to give them access to this specific note.`;
+        return 'Enter an email to send them a link to sign up and join the app.';
     };
 
     const formatSyncTime = (time: string | null) => {
@@ -137,11 +153,10 @@ export const Header: React.FC<HeaderProps> = ({
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="card max-w-md w-full p-6">
                         <h2 className="text-xl font-light text-gray-900 dark:text-gray-100 mb-4">
-                            Invite User
+                            {getShareTitle()}
                         </h2>
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                            Enter the Google email address of the person you want to collaborate with.
-                            They will get access to all notes and folders.
+                            {getShareDescription()}
                         </p>
                         <input
                             type="email"
