@@ -37,11 +37,10 @@ export class SupabaseService {
         };
     }
 
-    async getFolders(email: string) {
+    async getFolders(_email: string) {
         const { data, error } = await supabase
             .from('folders')
             .select('*')
-            .or(`created_by.eq.${email},shared_with.cs.{"${email}"}`)
             .order('created_at', { ascending: true });
 
         if (error) throw error;
@@ -73,30 +72,14 @@ export class SupabaseService {
         if (error) throw error;
     }
 
-    async getNotes(email: string) {
+    async getNotes(_email: string) {
         const { data, error } = await supabase
             .from('notes')
             .select('*')
-            .or(`created_by.eq.${email},shared_with.cs.{"${email}"}`)
             .order('updated_at', { ascending: false });
 
         if (error) throw error;
-
-        // Also get notes from shared folders
-        const { data: sharedFoldersNotes } = await supabase
-            .from('notes')
-            .select('*, folders!inner(*)')
-            .filter('folders.shared_with', 'cs', `{"${email}"}`);
-
-        // Combine and unique by ID
-        const combined = [...(data || [])];
-        if (sharedFoldersNotes) {
-            sharedFoldersNotes.forEach(n => {
-                if (!combined.find(c => c.id === n.id)) combined.push(n);
-            });
-        }
-
-        return combined.map(this.mapNote);
+        return (data || []).map(this.mapNote);
     }
 
     async createNote(folderId: string | null, title: string, content: string, email: string, name: string) {
